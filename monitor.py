@@ -102,8 +102,7 @@ def check_process(processlist):
     # 遍历配置的进程
     for pro in processlist:
         pro_config = processlist[pro]
-        msg = '[' + dingding['keyword'] + ']'
-        msg += "\n进程挂掉了!\n"
+        msg = "进程挂掉了!\n"
         if pro_config[0] in proc_dict.keys():
             # 遍历目录下进程
             pro_num = 0
@@ -142,15 +141,14 @@ def handle(threshold, dingding, processlist, alarm):
     pro_res, is_alarm_pro = check_process(processlist)
     pro_json_str = json.dumps(pro_res)
 
-    msg = '[' + dingding['keyword'] + ']'
-    info = ("\n机器：" + dingding['hostname'] +
+    info = ("机器：" + dingding['hostname'] +
             "\n磁盘已使用：" + str(disk_res) + '%'
             "\n内存已使用：" + str(mem_res) + '%'
             "\ncpu已使用：" + str(cpu_res) + '%')
 
     if is_alarm_disk or is_alarm_mem or is_alarm_cpu or is_alarm_pro:
-        title = "进程挂掉了！\n" + pro_json_str if is_alarm_pro else "服务器资源告警！"
-        alarm_msg = msg + title + info + "\n请尽快处理！"
+        title = "进程挂掉了！\n" + pro_json_str + "\n" + if is_alarm_pro else "服务器资源告警！\n"
+        alarm_msg = title + info + "\n请尽快处理！"
         now_time = int(time.time())
 
         if alarm['alarm_times'] == 0 :
@@ -175,7 +173,7 @@ def handle(threshold, dingding, processlist, alarm):
     if not is_alarm_disk and not is_alarm_cpu and not is_alarm_mem and not is_alarm_pro:
         # 判断是否为告警恢复
         if alarm['alarm_times'] != 0 :
-            alarm_msg = msg + "服务器/进程已恢复!" + info
+            alarm_msg = "服务器/进程已恢复!" + info
             send_alarm(alarm_msg)
             updateAlarmConf(0, 0)
 
@@ -188,6 +186,7 @@ def updateAlarmConf(alarm_times, next_alarm_time):
         cf.write(f)
  
 def send_alarm(msg):
+    msg = '[' + dingding['keyword'] + "]\n" + msg
     headers = {'Content-Type': 'application/json;charset=utf-8'}
     data = {
         "msgtype": "text",
@@ -198,7 +197,7 @@ def send_alarm(msg):
     logging.info(data)
     url = "https://oapi.dingtalk.com/robot/send?access_token=" + dingding['access_token']
     r = requests.post(url,data = json.dumps(data),headers=headers)
-    return r.text
+    logging.info(r.text)
   
 if __name__ == '__main__':
     init_log()
